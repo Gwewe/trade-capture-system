@@ -39,4 +39,4 @@ There was an unexpected error (type=Not Found, status=404).`
 #### Failing test:
 
 - TradeServiceTest
-- BookServiceTest
+- [x] BookServiceTest - fixed
