@@ -1,7 +1,7 @@
 # Candidate Checklist
 
-- [ ] Set up the project locally (backend & frontend)
-- [ ] Fix failing backend test cases
+- [x] Set up the project locally (backend & frontend)
+- [ ] Fix failing backend test cases - (In progress)
 - [ ] Implement missing backend functionality
 - [ ] Write tests for new backend features
 - [ ] Identify and fix a bug (with root cause analysis)
