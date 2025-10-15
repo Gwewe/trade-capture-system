@@ -1,13 +1,14 @@
 package com.technicalchallenge.service;
 
+import com.technicalchallenge.dto.BookDTO;
 import com.technicalchallenge.dto.TradeDTO;
 import com.technicalchallenge.dto.TradeLegDTO;
+import com.technicalchallenge.mapper.TradeMapper;
+import com.technicalchallenge.model.Book;
+import com.technicalchallenge.model.Counterparty;
 import com.technicalchallenge.model.Trade;
 import com.technicalchallenge.model.TradeLeg;
-import com.technicalchallenge.repository.CashflowRepository;
-import com.technicalchallenge.repository.TradeLegRepository;
-import com.technicalchallenge.repository.TradeRepository;
-import com.technicalchallenge.repository.TradeStatusRepository;
+import com.technicalchallenge.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,17 +40,30 @@ class TradeServiceTest {
     private TradeStatusRepository tradeStatusRepository;
 
     @Mock
+    private CounterpartyRepository counterpartyRepository;
+
+    @Mock
+    private BookRepository bookRepository;
+
+    @Mock
     private AdditionalInfoService additionalInfoService;
+
+    @Mock
+    private TradeMapper tradeMapper;
 
     @InjectMocks
     private TradeService tradeService;
 
     private TradeDTO tradeDTO;
     private Trade trade;
+    private Book book;
 
     @BeforeEach
     void setUp() {
         // Set up test data
+
+        Book book = new Book();
+
         tradeDTO = new TradeDTO();
         tradeDTO.setTradeId(100001L);
         tradeDTO.setTradeDate(LocalDate.of(2025, 1, 15));
@@ -66,15 +80,23 @@ class TradeServiceTest {
 
         tradeDTO.setTradeLegs(Arrays.asList(leg1, leg2));
 
+        Counterparty counterparty = new Counterparty();
+
         trade = new Trade();
         trade.setId(1L);
         trade.setTradeId(100001L);
+        trade.setBook(book);
     }
 
     @Test
     void testCreateTrade_Success() {
         // Given
         when(tradeRepository.save(any(Trade.class))).thenReturn(trade);
+        when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
+//        when(counterpartyRepository.findById(1000L)).thenReturn(Optional.of(counterparty));
+
+
+        when(tradeMapper.toDto(trade)).thenReturn(tradeDTO);
 
         // When
         Trade result = tradeService.createTrade(tradeDTO);
@@ -96,7 +118,7 @@ class TradeServiceTest {
         });
 
         // This assertion is intentionally wrong - candidates need to fix it
-        assertEquals("Wrong error message", exception.getMessage());
+        assertEquals("Start date cannot be before trade date", exception.getMessage());
     }
 
     @Test
