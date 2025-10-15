@@ -1,13 +1,9 @@
 package com.technicalchallenge.service;
 
-import com.technicalchallenge.dto.BookDTO;
 import com.technicalchallenge.dto.TradeDTO;
 import com.technicalchallenge.dto.TradeLegDTO;
 import com.technicalchallenge.mapper.TradeMapper;
-import com.technicalchallenge.model.Book;
-import com.technicalchallenge.model.Counterparty;
-import com.technicalchallenge.model.Trade;
-import com.technicalchallenge.model.TradeLeg;
+import com.technicalchallenge.model.*;
 import com.technicalchallenge.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -59,41 +55,60 @@ class TradeServiceTest {
     private Book book;
 
     @BeforeEach
-    void setUp() {
-        // Set up test data
+    void SetUp() {
+        tradeDTOSetUp();
+        tradeEntitySetUp();
+    }
 
-        Book book = new Book();
+    void tradeDTOSetUp() {
+        // Separate setup for tradeDTO
 
         tradeDTO = new TradeDTO();
         tradeDTO.setTradeId(100001L);
         tradeDTO.setTradeDate(LocalDate.of(2025, 1, 15));
         tradeDTO.setTradeStartDate(LocalDate.of(2025, 1, 17));
         tradeDTO.setTradeMaturityDate(LocalDate.of(2026, 1, 17));
+        tradeDTO.setVersion(1);
+        tradeDTO.setBookName("FX-BOOK-1Test");
+        tradeDTO.setBookId(1000L);
+        tradeDTO.setCounterpartyName("BigBankTest");
+        tradeDTO.setTradeStatus("AMENDED");
 
         TradeLegDTO leg1 = new TradeLegDTO();
         leg1.setNotional(BigDecimal.valueOf(1000000));
         leg1.setRate(0.05);
+        leg1.setCalculationPeriodSchedule("1M");
 
         TradeLegDTO leg2 = new TradeLegDTO();
         leg2.setNotional(BigDecimal.valueOf(1000000));
         leg2.setRate(0.0);
+        leg2.setCalculationPeriodSchedule("1M");
 
         tradeDTO.setTradeLegs(Arrays.asList(leg1, leg2));
 
-        Counterparty counterparty = new Counterparty();
+    }
+
+     void tradeEntitySetUp() {
+        // Separate setup for trade Object/Entity
 
         trade = new Trade();
         trade.setId(1L);
         trade.setTradeId(100001L);
+        trade.setVersion(1);
+
+        Counterparty counterparty = new Counterparty();
+        trade.setCounterparty(counterparty);
+
+        Book book = new Book();
         trade.setBook(book);
     }
 
     @Test
     void testCreateTrade_Success() {
         // Given
-        when(tradeRepository.save(any(Trade.class))).thenReturn(trade);
         when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
-//        when(counterpartyRepository.findById(1000L)).thenReturn(Optional.of(counterparty));
+        when(tradeRepository.findByTradeIdAndActiveTrue(100001L)).thenReturn(Optional.of(trade));
+        when(tradeRepository.save(any(Trade.class))).thenReturn(trade);
 
 
         when(tradeMapper.toDto(trade)).thenReturn(tradeDTO);
@@ -117,7 +132,7 @@ class TradeServiceTest {
             tradeService.createTrade(tradeDTO);
         });
 
-        // This assertion is intentionally wrong - candidates need to fix it
+        // This assertion is fixed
         assertEquals("Start date cannot be before trade date", exception.getMessage());
     }
 
