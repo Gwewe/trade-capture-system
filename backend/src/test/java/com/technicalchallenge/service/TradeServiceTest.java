@@ -42,6 +42,10 @@ class TradeServiceTest {
     private BookRepository bookRepository;
 
     @Mock
+    private ScheduleRepository scheduleRepository;
+
+
+    @Mock
     private AdditionalInfoService additionalInfoService;
 
     @Mock
@@ -52,12 +56,18 @@ class TradeServiceTest {
 
     private TradeDTO tradeDTO;
     private Trade trade;
-    private Book book;
+    private Book bookOne;
+    private Counterparty counterparty;
+    private TradeStatus tradeStatus;
+    private TradeLeg tradeLeg1;
+    private TradeLeg tradeLeg2;
+    protected LegType legType;
 
     @BeforeEach
     void SetUp() {
         tradeDTOSetUp();
         tradeEntitySetUp();
+        tradeLegEntitySetUp();
     }
 
     void tradeDTOSetUp() {
@@ -72,7 +82,7 @@ class TradeServiceTest {
         tradeDTO.setBookName("FX-BOOK-1Test");
         tradeDTO.setBookId(1000L);
         tradeDTO.setCounterpartyName("BigBankTest");
-        tradeDTO.setTradeStatus("AMENDED");
+        tradeDTO.setTradeStatus("NEW");
 
         TradeLegDTO leg1 = new TradeLegDTO();
         leg1.setNotional(BigDecimal.valueOf(1000000));
@@ -95,23 +105,57 @@ class TradeServiceTest {
         trade.setId(1L);
         trade.setTradeId(100001L);
         trade.setVersion(1);
+        trade.setTradeStatus(tradeStatus);
 
-        Counterparty counterparty = new Counterparty();
+        counterparty = new Counterparty();
         trade.setCounterparty(counterparty);
 
-        Book book = new Book();
-        trade.setBook(book);
+        bookOne = new Book();
+        bookOne.setId(1000L);
+        bookOne.setBookName("FX-BOOK-1Test");
+
+        tradeStatus = new TradeStatus();
+        tradeStatus.setTradeStatus("NEW");
+    }
+
+    void tradeLegEntitySetUp(){
+        // Separate setup for tradeLeg Object/Entity
+        legType = new LegType();
+        legType.setId(1L);
+        legType.setType("Fixed");
+
+        // The first TradeLeg
+        tradeLeg1 = new TradeLeg();
+        tradeLeg1.setLegId(1L);
+        tradeLeg1.setTrade(trade);
+        tradeLeg1.setNotional(BigDecimal.valueOf(1000000.0));
+        tradeLeg1.setRate(0.05);
+        tradeLeg1.setLegRateType(legType);
+
+        // Set up second TradeLeg
+        tradeLeg2 = new TradeLeg();
+        tradeLeg2.setLegId(2L);
+        tradeLeg2.setTrade(trade);
+        tradeLeg2.setNotional(BigDecimal.valueOf(1000000.0));
+        tradeLeg2.setRate(0.00);
+        tradeLeg2.setLegRateType(legType);
     }
 
     @Test
     void testCreateTrade_Success() {
         // Given
-        when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
-        when(tradeRepository.findByTradeIdAndActiveTrue(100001L)).thenReturn(Optional.of(trade));
+        TradeLeg newTradeLeg = new TradeLeg();
+        newTradeLeg.setLegId(1L);
+        newTradeLeg.setTrade(trade);
+        newTradeLeg.setNotional(BigDecimal.valueOf(1000000.0));
+        newTradeLeg.setRate(0.04);
+
+        when(bookRepository.findByBookName("FX-BOOK-1Test")).thenReturn(Optional.of(bookOne));
+        when(counterpartyRepository.findByName("BigBankTest")).thenReturn(Optional.of(counterparty));
+        when(tradeStatusRepository.findByTradeStatus("NEW")).thenReturn(Optional.of(tradeStatus));
+
+        when(tradeLegRepository.save(any(TradeLeg.class))).thenReturn((newTradeLeg));
         when(tradeRepository.save(any(Trade.class))).thenReturn(trade);
-
-
-        when(tradeMapper.toDto(trade)).thenReturn(tradeDTO);
 
         // When
         Trade result = tradeService.createTrade(tradeDTO);
