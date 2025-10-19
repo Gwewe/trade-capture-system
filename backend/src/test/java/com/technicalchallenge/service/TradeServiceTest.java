@@ -58,7 +58,9 @@ class TradeServiceTest {
     private Trade trade;
     private Book bookOne;
     private Counterparty counterparty;
-    private TradeStatus tradeStatus;
+    private TradeStatus newTradeStatus;
+    private TradeStatus amendTradeStatus;
+
     private TradeLeg tradeLeg1;
     private TradeLeg tradeLeg2;
     protected LegType legType;
@@ -101,11 +103,16 @@ class TradeServiceTest {
      void tradeEntitySetUp() {
         // Separate setup for trade Object/Entity
 
+        newTradeStatus = new TradeStatus();
+        newTradeStatus.setTradeStatus("NEW");
+
+
+
         trade = new Trade();
         trade.setId(1L);
         trade.setTradeId(100001L);
         trade.setVersion(1);
-        trade.setTradeStatus(tradeStatus);
+        trade.setTradeStatus(newTradeStatus);
 
         counterparty = new Counterparty();
         trade.setCounterparty(counterparty);
@@ -114,8 +121,6 @@ class TradeServiceTest {
         bookOne.setId(1000L);
         bookOne.setBookName("FX-BOOK-1Test");
 
-        tradeStatus = new TradeStatus();
-        tradeStatus.setTradeStatus("NEW");
     }
 
     void tradeLegEntitySetUp(){
@@ -152,7 +157,7 @@ class TradeServiceTest {
 
         when(bookRepository.findByBookName("FX-BOOK-1Test")).thenReturn(Optional.of(bookOne));
         when(counterpartyRepository.findByName("BigBankTest")).thenReturn(Optional.of(counterparty));
-        when(tradeStatusRepository.findByTradeStatus("NEW")).thenReturn(Optional.of(tradeStatus));
+        when(tradeStatusRepository.findByTradeStatus("NEW")).thenReturn(Optional.of(newTradeStatus));
 
         when(tradeLegRepository.save(any(TradeLeg.class))).thenReturn((newTradeLeg));
         when(tradeRepository.save(any(Trade.class))).thenReturn(trade);
@@ -221,12 +226,33 @@ class TradeServiceTest {
     @Test
     void testAmendTrade_Success() {
         // Given
+
+        amendTradeStatus = new TradeStatus();
+        amendTradeStatus.setTradeStatus("AMENDED");
+
+        TradeDTO amendTradeDTO = new TradeDTO();
+        amendTradeDTO.setTradeStatus("AMENDED");
+
+        TradeLegDTO amendTradeLegOne = new TradeLegDTO();
+        amendTradeLegOne.setLegId(1L);
+        amendTradeLegOne.setNotional(BigDecimal.valueOf(1000000.0));
+        amendTradeLegOne.setRate(0.00);
+
+        TradeLegDTO amendTradeLegTwo = new TradeLegDTO();
+        amendTradeLegTwo.setLegId(1L);
+        amendTradeLegTwo.setNotional(BigDecimal.valueOf(1000000.0));
+        amendTradeLegTwo.setRate(0.00);
+
+        amendTradeDTO.setTradeLegs(Arrays.asList(amendTradeLegOne, amendTradeLegTwo));
+
         when(tradeRepository.findByTradeIdAndActiveTrue(100001L)).thenReturn(Optional.of(trade));
-        when(tradeStatusRepository.findByTradeStatus("AMENDED")).thenReturn(Optional.of(new com.technicalchallenge.model.TradeStatus()));
+        when(tradeStatusRepository.findByTradeStatus("AMENDED")).thenReturn(Optional.of(amendTradeStatus));
+
+
         when(tradeRepository.save(any(Trade.class))).thenReturn(trade);
 
         // When
-        Trade result = tradeService.amendTrade(100001L, tradeDTO);
+        Trade result = tradeService.amendTrade(100001L, amendTradeDTO);
 
         // Then
         assertNotNull(result);
