@@ -40,4 +40,14 @@ public class CounterpartyServiceTest {
         assertNotNull(saveCounterparty);
         assertEquals(1L, saveCounterparty.getId());
     }
+
+    @Test
+    void testDeleteCounterparty() {
+        Long counterpartyId = 3L;
+
+        doNothing().when(counterpartyRepository).deleteById(counterpartyId);
+        counterpartyService.deleteCounterparty(counterpartyId);
+
+        verify(counterpartyRepository, times(1)).deleteById(counterpartyId);
+    }
 }
