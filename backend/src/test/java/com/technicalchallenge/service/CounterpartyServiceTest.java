@@ -28,7 +28,7 @@ public class CounterpartyServiceTest {
         assertEquals(1L, found.get().getId());
     }
 
-    // Add more tests for save, update, delete]
+    // Add more tests for save, update, delete
 
     @Test
     void testSaveCounterparty() {
@@ -39,5 +39,45 @@ public class CounterpartyServiceTest {
 
         assertNotNull(saveCounterparty);
         assertEquals(1L, saveCounterparty.getId());
+    }
+
+    @Test
+    void testUpdateCounterparty() {
+        //Setup for the existing counterparty
+        Counterparty existingCounterparty = new Counterparty();
+        existingCounterparty.setId(1L);
+        existingCounterparty.setName("TestName");
+        existingCounterparty.setAddress("French Guiana");
+        existingCounterparty.setInternalCode(4L);
+
+        //Setup for the amended data
+        Counterparty amendedCounterparty = new Counterparty();
+        amendedCounterparty.setName("TestName1.1");
+
+        // Setup for the new updated counterparty
+        Counterparty savedCounterparty = new Counterparty();
+        savedCounterparty.setId(1L);
+        savedCounterparty.setName("TestName1.1");
+        savedCounterparty.setAddress("French Guiana");
+        savedCounterparty.setInternalCode(4L);
+
+        when(counterpartyRepository.findById(1L)).thenReturn(Optional.of(existingCounterparty));
+        when(counterpartyRepository.save(any(Counterparty.class))).thenReturn(savedCounterparty);
+
+        Counterparty result = counterpartyService.updateCounterparty(1L, amendedCounterparty);
+
+        assertNotNull(result);
+        assertEquals(1L, result.getId());
+        assertEquals("TestName1.1", result.getName());
+    }
+
+    @Test
+    void testDeleteCounterparty() {
+        Long counterpartyId = 3L;
+
+        doNothing().when(counterpartyRepository).deleteById(counterpartyId);
+        counterpartyService.deleteCounterparty(counterpartyId);
+
+        verify(counterpartyRepository, times(1)).deleteById(counterpartyId);
     }
 }
