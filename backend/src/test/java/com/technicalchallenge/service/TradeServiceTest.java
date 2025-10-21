@@ -58,16 +58,14 @@ class TradeServiceTest {
     private Trade trade;
     private Book bookOne;
     private Counterparty counterparty;
-    private TradeStatus tradeStatus;
-    private TradeLeg tradeLeg1;
-    private TradeLeg tradeLeg2;
-    protected LegType legType;
+    private TradeStatus newTradeStatus;
+    private TradeStatus amendTradeStatus;
+
 
     @BeforeEach
     void SetUp() {
         tradeDTOSetUp();
         tradeEntitySetUp();
-        tradeLegEntitySetUp();
     }
 
     void tradeDTOSetUp() {
@@ -87,7 +85,7 @@ class TradeServiceTest {
         TradeLegDTO leg1 = new TradeLegDTO();
         leg1.setNotional(BigDecimal.valueOf(1000000));
         leg1.setRate(0.05);
-        leg1.setCalculationPeriodSchedule("1M");
+        leg1.setCalculationPeriodSchedule("Test");
 
         TradeLegDTO leg2 = new TradeLegDTO();
         leg2.setNotional(BigDecimal.valueOf(1000000));
@@ -101,11 +99,15 @@ class TradeServiceTest {
      void tradeEntitySetUp() {
         // Separate setup for trade Object/Entity
 
+        newTradeStatus = new TradeStatus();
+        newTradeStatus.setTradeStatus("NEW");
+
+
         trade = new Trade();
         trade.setId(1L);
         trade.setTradeId(100001L);
         trade.setVersion(1);
-        trade.setTradeStatus(tradeStatus);
+        trade.setTradeStatus(newTradeStatus);
 
         counterparty = new Counterparty();
         trade.setCounterparty(counterparty);
@@ -114,31 +116,6 @@ class TradeServiceTest {
         bookOne.setId(1000L);
         bookOne.setBookName("FX-BOOK-1Test");
 
-        tradeStatus = new TradeStatus();
-        tradeStatus.setTradeStatus("NEW");
-    }
-
-    void tradeLegEntitySetUp(){
-        // Separate setup for tradeLeg Object/Entity
-        legType = new LegType();
-        legType.setId(1L);
-        legType.setType("Fixed");
-
-        // The first TradeLeg
-        tradeLeg1 = new TradeLeg();
-        tradeLeg1.setLegId(1L);
-        tradeLeg1.setTrade(trade);
-        tradeLeg1.setNotional(BigDecimal.valueOf(1000000.0));
-        tradeLeg1.setRate(0.05);
-        tradeLeg1.setLegRateType(legType);
-
-        // Set up second TradeLeg
-        tradeLeg2 = new TradeLeg();
-        tradeLeg2.setLegId(2L);
-        tradeLeg2.setTrade(trade);
-        tradeLeg2.setNotional(BigDecimal.valueOf(1000000.0));
-        tradeLeg2.setRate(0.00);
-        tradeLeg2.setLegRateType(legType);
     }
 
     @Test
@@ -152,7 +129,7 @@ class TradeServiceTest {
 
         when(bookRepository.findByBookName("FX-BOOK-1Test")).thenReturn(Optional.of(bookOne));
         when(counterpartyRepository.findByName("BigBankTest")).thenReturn(Optional.of(counterparty));
-        when(tradeStatusRepository.findByTradeStatus("NEW")).thenReturn(Optional.of(tradeStatus));
+        when(tradeStatusRepository.findByTradeStatus("NEW")).thenReturn(Optional.of(newTradeStatus));
 
         when(tradeLegRepository.save(any(TradeLeg.class))).thenReturn((newTradeLeg));
         when(tradeRepository.save(any(Trade.class))).thenReturn(trade);
@@ -221,12 +198,33 @@ class TradeServiceTest {
     @Test
     void testAmendTrade_Success() {
         // Given
+
+        amendTradeStatus = new TradeStatus();
+        amendTradeStatus.setTradeStatus("AMENDED");
+
+        TradeDTO amendTradeDTO = new TradeDTO();
+        amendTradeDTO.setTradeStatus("AMENDED");
+
+        TradeLegDTO amendTradeLegOne = new TradeLegDTO();
+        amendTradeLegOne.setLegId(1L);
+        amendTradeLegOne.setNotional(BigDecimal.valueOf(1000000.0));
+        amendTradeLegOne.setRate(0.00);
+
+        TradeLegDTO amendTradeLegTwo = new TradeLegDTO();
+        amendTradeLegTwo.setLegId(1L);
+        amendTradeLegTwo.setNotional(BigDecimal.valueOf(1000000.0));
+        amendTradeLegTwo.setRate(0.00);
+
+        amendTradeDTO.setTradeLegs(Arrays.asList(amendTradeLegOne, amendTradeLegTwo));
+
         when(tradeRepository.findByTradeIdAndActiveTrue(100001L)).thenReturn(Optional.of(trade));
-        when(tradeStatusRepository.findByTradeStatus("AMENDED")).thenReturn(Optional.of(new com.technicalchallenge.model.TradeStatus()));
+        when(tradeStatusRepository.findByTradeStatus("AMENDED")).thenReturn(Optional.of(amendTradeStatus));
+
+
         when(tradeRepository.save(any(Trade.class))).thenReturn(trade);
 
         // When
-        Trade result = tradeService.amendTrade(100001L, tradeDTO);
+        Trade result = tradeService.amendTrade(100001L, amendTradeDTO);
 
         // Then
         assertNotNull(result);
@@ -253,12 +251,60 @@ class TradeServiceTest {
         // Candidates need to implement proper cashflow testing
 
         // Given - setup is incomplete
-        TradeLeg leg = new TradeLeg();
-        leg.setNotional(BigDecimal.valueOf(1000000));
+        //setup for the TradeLegDTO and TradeDTO
+        TradeLegDTO leg1 = new TradeLegDTO();
+        leg1.setNotional(BigDecimal.valueOf(1000000));
+        leg1.setRate(0.05);
+        leg1.setCalculationPeriodSchedule("1M");
 
-        // When - method call is missing
+
+        TradeLegDTO leg2 = new TradeLegDTO();
+        leg2.setNotional(BigDecimal.valueOf(1000000));
+        leg2.setRate(0.05);
+        leg2.setCalculationPeriodSchedule("1M");
+
+        tradeDTO.setTradeLegs(Arrays.asList(leg1, leg2));
+        tradeDTO.setBookName("FX-BOOK-1Test");
+        tradeDTO.setCounterpartyName("BigBankTest");
+        tradeDTO.setTradeStatus("NEW");
+
+        //setup for the TradeLeg entity and Trade Entity
+        Schedule tradeSchedule = new Schedule();
+        tradeSchedule.setSchedule("1M");
+
+        TradeStatus newTradeStatus = new TradeStatus();
+        newTradeStatus.setTradeStatus("NEW");
+
+        TradeLeg legOne = new TradeLeg();
+        legOne.setCalculationPeriodSchedule(tradeSchedule);
+        legOne.setNotional(BigDecimal.valueOf(1000000));
+
+        TradeLeg legTwo = new TradeLeg();
+        legTwo.setCalculationPeriodSchedule(tradeSchedule);
+        legTwo.setNotional(BigDecimal.valueOf(1000000));
+
+        Trade tradeEntity = new Trade();
+        tradeEntity.setTradeId(tradeDTO.getTradeId());
+        tradeEntity.setBook(bookOne);
+        tradeEntity.setCounterparty(counterparty);
+        tradeEntity.setTradeStatus(newTradeStatus);
+        tradeEntity.setTradeLegs(Arrays.asList(legOne, legTwo));
+
+
+        when(tradeRepository.save(any(Trade.class))).thenReturn(tradeEntity);
+        when(tradeLegRepository.save(any(TradeLeg.class))).thenReturn(legOne, legTwo);
+
+        when(bookRepository.findByBookName("FX-BOOK-1Test")).thenReturn(Optional.of(bookOne));
+        when(counterpartyRepository.findByName("BigBankTest")).thenReturn(Optional.of(counterparty));
+        when(tradeStatusRepository.findByTradeStatus("NEW")).thenReturn(Optional.of(newTradeStatus));
+
+
+        // When - used method createTrade(tradeDTO) to call the private generateCashflows which is nested in the createTradeLegsWithCashflows method which is nested createTrade(tradeDTO).
+        Trade result = tradeService.createTrade(tradeDTO);
+
 
         // Then - assertions are wrong/missing
-        assertEquals(1, 12); // This will always fail - candidates need to fix
+        assertNotNull(result);
+        verify(cashflowRepository, times(24)).save(any(Cashflow.class));
     }
 }
