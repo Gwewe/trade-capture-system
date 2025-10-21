@@ -25,6 +25,15 @@ public class CounterpartyService {
         return counterpartyRepository.save(counterparty);
     }
 
+    public Counterparty updateCounterparty (Long id, Counterparty amendedCounterparty) {
+        Counterparty counterparty = counterpartyRepository.findById(id).orElseThrow(() -> new RuntimeException("Counterparty not found: " + id));
+        counterparty.setName(amendedCounterparty.getName());
+        counterparty.setAddress(amendedCounterparty.getAddress());
+        counterparty.setInternalCode(amendedCounterparty.getInternalCode());
+
+        return counterpartyRepository.save(counterparty);
+    }
+
     public void deleteCounterparty(Long id) {
         counterpartyRepository.deleteById(id);
     }
