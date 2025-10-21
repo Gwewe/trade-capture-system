@@ -27,5 +27,17 @@ public class CounterpartyServiceTest {
         assertTrue(found.isPresent());
         assertEquals(1L, found.get().getId());
     }
-    // Add more tests for save, update, delete
+
+    // Add more tests for save, update, delete]
+
+    @Test
+    void testSaveCounterparty() {
+        Counterparty counterparty = new Counterparty();
+        counterparty.setId(1L);
+        when(counterpartyRepository.save(any(Counterparty.class))).thenReturn(counterparty);
+        Counterparty saveCounterparty = counterpartyService.saveCounterparty(counterparty);
+
+        assertNotNull(saveCounterparty);
+        assertEquals(1L, saveCounterparty.getId());
+    }
 }
