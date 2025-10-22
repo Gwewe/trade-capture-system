@@ -3,6 +3,7 @@ package com.technicalchallenge.service;
 import com.technicalchallenge.dto.TradeDTO;
 //import com.technicalchallenge.;
 import com.technicalchallenge.dto.TradeLegDTO;
+import com.technicalchallenge.mapper.TradeMapper;
 import com.technicalchallenge.model.*;
 import com.technicalchallenge.repository.*;
 import org.hibernate.usertype.UserType;
@@ -58,6 +59,8 @@ public class TradeService {
     private PayRecRepository payRecRepository;
     @Autowired
     private AdditionalInfoService additionalInfoService;
+    @Autowired
+    private TradeMapper tradeMapper;
 
     public List<Trade> getAllTrades() {
         logger.info("Retrieving all trades");
@@ -592,12 +595,60 @@ public class TradeService {
     }
 
 
-//    //NEW METHOD: Search through a list of trade by counterparty, book, trader, status, date ranges
-//    public List<TradeDTO> getTradeBySearch (Counterparty counterparty, Book book, String userType, TradeStatus tradeStatus, TradeDTO tradeDTO) {
-//        List<Trade> listAlltrades = tradeRepository.findAll();
-//
-//        counterparty = counterparty.toLowerCase().split("[,\\.\\s]+");
-//
-//        return tradeRepository.findAll();
-//    }
+    //NEW METHOD: Search through a list of trade by counterparty, book, trader, status, date ranges
+    public List<TradeDTO> getTradeDTOBySearch (String counterparty, String book, String traderUser, String tradeStatus) {
+
+        List<TradeDTO> matchingTradeDTOs = new ArrayList<>();
+
+        List<String> keywordsCounterparty = List.of(counterparty.toLowerCase().split("[,.\\s]+"));
+        List<String> keywordsBook = List.of(book.toLowerCase().split("[,.\\s]+"));
+        List<String> keywordsTraderUser = List.of(traderUser.toLowerCase().split("[,.\\s]+"));
+        List<String> keywordsTradeStatus = List.of(tradeStatus.toLowerCase().split("[,.\\s]+"));
+
+        List<Trade> trades = tradeRepository.findAll();
+
+        for (Trade trade: trades) {
+            String lowerCounterparty = trade.getCounterparty().toString().toLowerCase();
+            String lowerBook = trade.getBook().toString().toLowerCase();
+            String lowerTraderUser = trade.getTraderUser().toString().toLowerCase();
+            String lowerTradeStatus = trade.getTradeStatus().toString().toLowerCase();
+
+            boolean matchingCounterparty = false;
+            for (String keyword : keywordsCounterparty) {
+                if (lowerCounterparty.contains((keyword))) {
+                    matchingCounterparty = true;
+                    break;
+                }
+            }
+
+            boolean matchingBook = false;
+            for (String keyword: keywordsBook) {
+                if (lowerBook.contains(keyword)) {
+                    matchingBook = true;
+                    break;
+                }
+            }
+
+            boolean matchingTraderUser = false;
+            for (String keyword: keywordsTraderUser) {
+                if (lowerTraderUser.contains(keyword)) {
+                    matchingTraderUser = true;
+                    break;
+                }
+            }
+
+            boolean matchingTradeStatus = false;
+            for (String keyword: keywordsTradeStatus) {
+                if (lowerTradeStatus.contains(keyword)) {
+                    matchingTradeStatus = true;
+                    break;
+                }
+            }
+
+            if (matchingCounterparty || matchingBook || matchingTraderUser || matchingTradeStatus) {
+                matchingTradeDTOs.add(tradeMapper.toDto(trade));
+            }
+        }
+        return matchingTradeDTOs;
+    }
 }
