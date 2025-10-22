@@ -81,6 +81,7 @@ public class BookControllerTest {
     }
     // Add more tests for POST, PUT, DELETE as needed
 
+    //Test for Post
     @Test
     void shouldReturnANewBook() throws Exception {
         //Given
@@ -96,5 +97,20 @@ public class BookControllerTest {
                 .andExpect(jsonPath("$.bookName", is("Book Name")));
 
         verify(bookService).saveBook(any(BookDTO.class));
+    }
+
+
+    //Test for Delete
+    @Test
+    void shouldDeleteABookById() throws Exception {
+        //Given
+        doNothing().when(bookService).deleteBook(1L);
+
+        // When/Then
+        mockMvc.perform(delete("/api/books/1")
+                        .contentType(MediaType.APPLICATION_JSON))
+                        .andExpect(status().isNoContent());
+
+        verify(bookService).deleteBook(1L);
     }
 }
