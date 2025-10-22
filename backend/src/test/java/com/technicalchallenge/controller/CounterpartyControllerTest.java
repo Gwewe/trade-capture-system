@@ -88,5 +88,20 @@ public class CounterpartyControllerTest {
         verify(counterpartyService).saveCounterparty(any(Counterparty.class));
     }
 
+
+    //Test for Delete
+    @Test
+    void shouldDeleteACounterpartyById() throws Exception {
+        //Given
+        doNothing().when(counterpartyService).deleteCounterparty(1L);
+
+        // When/Then
+        mockMvc.perform(delete("/api/counterparties/1")
+                        .contentType(MediaType.APPLICATION_JSON))
+                        .andExpect(status().isNoContent());
+
+        verify(counterpartyService).deleteCounterparty(1L);
+    }
+
 }
 
