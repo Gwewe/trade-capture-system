@@ -5,6 +5,7 @@ import com.technicalchallenge.dto.TradeDTO;
 import com.technicalchallenge.dto.TradeLegDTO;
 import com.technicalchallenge.model.*;
 import com.technicalchallenge.repository.*;
+import org.hibernate.usertype.UserType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -589,4 +590,14 @@ public class TradeService {
         // For simplicity, using a static variable. In real scenario, this should be atomic and thread-safe.
         return 10000L + tradeRepository.count();
     }
+
+
+//    //NEW METHOD: Search through a list of trade by counterparty, book, trader, status, date ranges
+//    public List<TradeDTO> getTradeBySearch (Counterparty counterparty, Book book, String userType, TradeStatus tradeStatus, TradeDTO tradeDTO) {
+//        List<Trade> listAlltrades = tradeRepository.findAll();
+//
+//        counterparty = counterparty.toLowerCase().split("[,\\.\\s]+");
+//
+//        return tradeRepository.findAll();
+//    }
 }
