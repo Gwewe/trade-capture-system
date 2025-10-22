@@ -98,7 +98,7 @@ public class CounterpartyControllerTest {
         // When/Then
         mockMvc.perform(delete("/api/counterparties/1")
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNoContent());
+                        .andExpect(status().isNoContent());
 
         verify(counterpartyService).deleteCounterparty(1L);
     }
