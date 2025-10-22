@@ -72,6 +72,11 @@ public class TradeController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+//    @GetMapping
+//    public ResponseEntity <List<TradeDTO>> getTradeBySearch(){
+//
+//    }
+
     @PostMapping
     @Operation(summary = "Create new trade",
                description = "Creates a new trade with the provided details. Automatically generates cashflows and validates business rules.")
