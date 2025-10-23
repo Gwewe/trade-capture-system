@@ -91,6 +91,11 @@ public class TradeController {
             @Parameter(description = "Trade details for creation", required = true)
             @Valid @RequestBody TradeDTO tradeDTO) {
         logger.info("Creating new trade: {}", tradeDTO);
+
+        if (tradeDTO.getTradeDate() == null) {
+            logger.warn("Trade date is required");
+            return ResponseEntity.badRequest().body("Trade date is required");
+        }
         try {
             Trade trade = tradeMapper.toEntity(tradeDTO);
             tradeService.populateReferenceDataByName(trade, tradeDTO);
@@ -120,6 +125,10 @@ public class TradeController {
             @Parameter(description = "Updated trade details", required = true)
             @Valid @RequestBody TradeDTO tradeDTO) {
         logger.info("Updating trade with id: {}", id);
+        if (!id.equals(tradeDTO.getTradeId())) {
+            logger.warn("Trade ID in path must match Trade ID in request body");
+            return ResponseEntity.badRequest().body("Trade ID in path must match Trade ID in request body");
+        }
         try {
             tradeDTO.setTradeId(id); // Ensure the ID matches
             Trade amendedTrade = tradeService.amendTrade(id, tradeDTO);
