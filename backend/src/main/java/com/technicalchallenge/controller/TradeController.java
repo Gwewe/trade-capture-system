@@ -71,11 +71,35 @@ public class TradeController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
-
-//    @GetMapping
-//    public ResponseEntity <List<TradeDTO>> getTradeBySearch(){
-//
-//    }
+//    String counterparty, String book, String traderUser, String tradeStatus
+    @GetMapping("/search") // Multi-criteria search
+    @Operation(summary = "Multi-criteria search for matching trades",
+            description = "Retrieves specific trades that match the specified search parameter")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Matching trades found",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = TradeDTO.class))),
+            @ApiResponse(responseCode = "204", description = "No matching trades found"),
+            @ApiResponse(responseCode = "400", description = "Invalid search format")
+    })
+    public ResponseEntity <?> getTradeDTOBySearch (
+            @Parameter(required = false) String counterparty,
+            @Parameter(required = false) String book,
+            @Parameter( required = false) String traderUser,
+            @Parameter(required = false) String tradeStatus){
+        try{
+            List<TradeDTO> matchingTradeDTOs = tradeService.getTradeDTOBySearch(counterparty,book, traderUser,tradeStatus);
+            if (matchingTradeDTOs.isEmpty()) {
+                logger.info("No matching trades found for the following search option: counterparty={}, book={}, tradeUser={}, tradeStatus={}", counterparty, book, traderUser, tradeStatus);
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+            }
+            logger.info("Found {} matching trades", matchingTradeDTOs.size());
+            return ResponseEntity.ok(matchingTradeDTOs);
+        } catch (Exception e){
+            logger.error("Error retrieving the matching trades: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest().body("Error retrieving the matching trades: " + e.getMessage());
+        }
+    }
 
     @PostMapping
     @Operation(summary = "Create new trade",
