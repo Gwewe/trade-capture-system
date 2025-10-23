@@ -115,11 +115,6 @@ public class TradeController {
             @Parameter(description = "Trade details for creation", required = true)
             @Valid @RequestBody TradeDTO tradeDTO) {
         logger.info("Creating new trade: {}", tradeDTO);
-
-        if (tradeDTO.getTradeDate() == null) {
-            logger.warn("Trade date is required");
-            return ResponseEntity.badRequest().body("Trade date is required");
-        }
         try {
             Trade trade = tradeMapper.toEntity(tradeDTO);
             tradeService.populateReferenceDataByName(trade, tradeDTO);
@@ -168,7 +163,7 @@ public class TradeController {
     @Operation(summary = "Delete trade",
                description = "Deletes an existing trade. This is a soft delete that changes the trade status.")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Trade deleted successfully"),
+        @ApiResponse(responseCode = "204", description = "Trade deleted successfully"),
         @ApiResponse(responseCode = "404", description = "Trade not found"),
         @ApiResponse(responseCode = "400", description = "Trade cannot be deleted in current status"),
         @ApiResponse(responseCode = "403", description = "Insufficient privileges to delete trade")
@@ -179,7 +174,8 @@ public class TradeController {
         logger.info("Deleting trade with id: {}", id);
         try {
             tradeService.deleteTrade(id);
-            return ResponseEntity.ok().body("Trade cancelled successfully");
+            logger.info("Trade deleted successfully: {}", id);
+            return ResponseEntity.noContent().build();
         } catch (Exception e) {
             logger.error("Error deleting trade: {}", e.getMessage(), e);
             return ResponseEntity.badRequest().body("Error deleting trade: " + e.getMessage());
