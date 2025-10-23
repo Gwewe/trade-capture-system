@@ -91,11 +91,6 @@ public class TradeController {
             @Parameter(description = "Trade details for creation", required = true)
             @Valid @RequestBody TradeDTO tradeDTO) {
         logger.info("Creating new trade: {}", tradeDTO);
-
-        if (tradeDTO.getTradeDate() == null) {
-            logger.warn("Trade date is required");
-            return ResponseEntity.badRequest().body("Trade date is required");
-        }
         try {
             Trade trade = tradeMapper.toEntity(tradeDTO);
             tradeService.populateReferenceDataByName(trade, tradeDTO);

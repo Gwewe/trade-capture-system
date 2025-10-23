@@ -155,7 +155,7 @@ public class TradeControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidDTO)))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string("Trade date is required"));
+                .andExpect(jsonPath("$.message").value("Trade date is required"));
 
         verify(tradeService, never()).saveTrade(any(Trade.class), any(TradeDTO.class));
     }
@@ -173,7 +173,7 @@ public class TradeControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidDTO)))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string("Book and Counterparty are required"));
+                .andExpect(jsonPath("$.message").value("Book and Counterparty are required"));
 
         verify(tradeService, never()).saveTrade(any(Trade.class), any(TradeDTO.class));
     }
