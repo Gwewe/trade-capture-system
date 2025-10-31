@@ -4,9 +4,12 @@ import com.technicalchallenge.dto.TradeDTO;
 import com.technicalchallenge.model.Counterparty;
 import com.technicalchallenge.model.Trade;
 
+import java.awt.print.Pageable;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+
+import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -50,5 +53,5 @@ public interface TradeRepository extends JpaRepository<Trade, Long> {
 
     // NEW SEARCH METHOD to find specific trade containing a specific all the specific criteria
     @Query("SELECT t FROM Trade t WHERE (:counterparty IS NULL OR t.counterparty = :counterparty) AND (:book IS NULL OR t.book = :book) AND (:traderUser IS NULL OR t.traderUser = :traderUser) AND (:tradeStatus IS NULL OR t.tradeStatus = :tradeStatus) AND (:dateFrom IS NULL OR t.tradeStartDate = :dateFrom) AND (:dateTo IS NULL OR t.tradeMaturityDate = :dateTo)")
-    List<Trade> findTradeByAllCriteria (@Param("counterparty") String counterparty,@Param("book") String book, @Param("traderUser") String traderUser,@Param("tradeStatus") String tradeStatus,@Param("dateFrom") LocalDate dateFrom, @Param("dateTo") LocalDate dateTo );
+    Page<Trade> findTradeByAllCriteria (@Param("counterparty") String counterparty, @Param("book") String book, @Param("traderUser") String traderUser, @Param("tradeStatus") String tradeStatus, @Param("dateFrom") LocalDate dateFrom, @Param("dateTo") LocalDate dateTo, Pageable pageable);
 }

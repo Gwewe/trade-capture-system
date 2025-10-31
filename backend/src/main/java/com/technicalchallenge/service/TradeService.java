@@ -8,11 +8,13 @@ import com.technicalchallenge.model.*;
 import com.technicalchallenge.repository.*;
 import org.hibernate.usertype.UserType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.awt.print.Pageable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -689,19 +691,19 @@ public class TradeService {
         return tradesFound.stream().map(tradeMapper::toDto).toList();
     }
 
-    // NEW SEARCH METHOD Consolidate all criteria: return trades matching with the criteria provided.
-    public List<TradeDTO> findTradeByAllCriteria (String counterparty, String book, String traderUser, String tradeStatus, LocalDate dateFrom, LocalDate dateTo ){
+    // NEW SEARCH METHOD Consolidate all criteria: return trades matching with the criteria provided. Included Pageable option
+    public Page<TradeDTO> findTradeByAllCriteria (String counterparty, String book, String traderUser, String tradeStatus, LocalDate dateFrom, LocalDate dateTo, Pageable pageable){
         logger.info("Searching for trade matching with criteria: counterparty {}, book {}, trader user {}, trade status {}, start date {}, maturity date {}",
                 counterparty, book, traderUser, tradeStatus, dateFrom, dateTo);
 
-        List<Trade> tradesFound = tradeRepository.findTradeByAllCriteria(counterparty, book, traderUser, tradeStatus, dateFrom, dateTo);
+        Page<Trade> tradesFound = tradeRepository.findTradeByAllCriteria(counterparty, book, traderUser, tradeStatus, dateFrom, dateTo, pageable);
         if (tradesFound.isEmpty()) {
             logger.info("No trades found for the criteria");
-            return List.of();
+            return Page.empty();
         }
 
         logger.info("Found the following trades matching the criteria");
-        return tradesFound.stream().map(tradeMapper::toDto).toList();
+        return tradesFound.map(tradeMapper::toDto);
     }
 
 
