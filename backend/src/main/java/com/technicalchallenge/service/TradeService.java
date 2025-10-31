@@ -595,60 +595,115 @@ public class TradeService {
     }
 
 
-    //NEW METHOD: Search through a list of trade by counterparty, book, trader, status, date ranges
-    public List<TradeDTO> getTradeDTOBySearch (String counterparty, String book, String traderUser, String tradeStatus) {
+    // NEW SEARCH METHOD: return trades containing a specific Counterparty
+    public List<TradeDTO> findTradeByCounterparty (String counterparty) {
+        logger.info("Searching for trade matching with the Counterparty name provided: {}", counterparty);
 
-        List<TradeDTO> matchingTradeDTOs = new ArrayList<>();
-
-        List<String> keywordsCounterparty = List.of(counterparty.toLowerCase().split("[,.\\s]+"));
-        List<String> keywordsBook = List.of(book.toLowerCase().split("[,.\\s]+"));
-        List<String> keywordsTraderUser = List.of(traderUser.toLowerCase().split("[,.\\s]+"));
-        List<String> keywordsTradeStatus = List.of(tradeStatus.toLowerCase().split("[,.\\s]+"));
-
-        List<Trade> trades = tradeRepository.findAll();
-
-        for (Trade trade: trades) {
-            String lowerCounterparty = trade.getCounterparty().toString().toLowerCase();
-            String lowerBook = trade.getBook().toString().toLowerCase();
-            String lowerTraderUser = trade.getTraderUser().toString().toLowerCase();
-            String lowerTradeStatus = trade.getTradeStatus().toString().toLowerCase();
-
-            boolean matchingCounterparty = false;
-            for (String keyword : keywordsCounterparty) {
-                if (lowerCounterparty.contains((keyword))) {
-                    matchingCounterparty = true;
-                    break;
-                }
-            }
-
-            boolean matchingBook = false;
-            for (String keyword: keywordsBook) {
-                if (lowerBook.contains(keyword)) {
-                    matchingBook = true;
-                    break;
-                }
-            }
-
-            boolean matchingTraderUser = false;
-            for (String keyword: keywordsTraderUser) {
-                if (lowerTraderUser.contains(keyword)) {
-                    matchingTraderUser = true;
-                    break;
-                }
-            }
-
-            boolean matchingTradeStatus = false;
-            for (String keyword: keywordsTradeStatus) {
-                if (lowerTradeStatus.contains(keyword)) {
-                    matchingTradeStatus = true;
-                    break;
-                }
-            }
-
-            if (matchingCounterparty || matchingBook || matchingTraderUser || matchingTradeStatus) {
-                matchingTradeDTOs.add(tradeMapper.toDto(trade));
-            }
+        if (counterparty == null || counterparty.isBlank()) {
+            throw new RuntimeException("Counterparty must be provided");
         }
-        return matchingTradeDTOs;
+
+        List<Trade> tradesFound = tradeRepository.findTradeByCounterparty(counterparty);
+        if (tradesFound.isEmpty()){
+            logger.info("Counterparty not found: {} ", counterparty);
+            return List.of();
+        }
+
+        logger.info("Counterparty provided, returning trades that match with the specific Counterparty. Total: {}", tradesFound.size());
+        return tradesFound.stream().map(tradeMapper::toDto).toList();
     }
+
+    // NEW SEARCH METHOD: return trades containing a specific Book
+    public List<TradeDTO> findTradeByBook (String book) {
+        logger.info("Searching for trade matching with the Book name provided: {}", book);
+
+        if (book == null || book.isBlank()) {
+            throw new RuntimeException("Book must be provided");
+        }
+
+        List<Trade> tradesFound = tradeRepository.findTradeByBook(book);
+         if (tradesFound.isEmpty()) {
+             logger.info("Book not found: {} ", book);
+             return List.of();
+        }
+
+        logger.info("Book name was provided, returning trades that match with the specific Book. Total: {}", tradesFound.size());
+        return tradesFound.stream().map(tradeMapper::toDto).toList();
+    }
+
+    // NEW SEARCH METHOD: return trades containing a specific TraderUser
+    public List<TradeDTO> findTradeByTraderUser (String traderUser) {
+        logger.info("Searching for trade matching with the Trader User provided: {}", traderUser);
+
+        if (traderUser == null || traderUser.isBlank()) {
+            throw new RuntimeException("Trader User must be provided");
+        }
+
+        List<Trade> tradesFound = tradeRepository.findTradeByTraderUser(traderUser);
+        if (tradesFound.isEmpty()) {
+            logger.info("Trader User not found: {} ", traderUser);
+            return List.of();
+        }
+
+        logger.info("Trader User was provided, returning trades that match with the specific Trader name. Total: {}", tradesFound.size());
+        return tradesFound.stream().map(tradeMapper::toDto).toList();
+    }
+
+    // NEW SEARCH METHOD: return trades containing a specific TradeStatus
+    public List<TradeDTO> findTradeByTradeStatus (String tradeStatus) {
+        logger.info("Searching for trade matching with the Trade Status: {}", tradeStatus);
+
+        if (tradeStatus == null || tradeStatus.isBlank()) {
+            throw new RuntimeException("Trade Status must be provided");
+        }
+
+        List<Trade> tradesFound = tradeRepository.findTradeByTradeStatus(tradeStatus);
+        if (tradesFound.isEmpty()) {
+            logger.info("Trader Status not found: {} ", tradeStatus);
+            return List.of();
+        }
+
+        logger.info("Found, the following trade matching with the Trade Status provided: {}", tradeStatus);
+        return tradesFound.stream().map(tradeMapper::toDto).toList();
+    }
+
+    // NEW SEARCH METHOD: return trades matching a specific date ranges.
+    public List<TradeDTO> findTradeByDateRange (LocalDate dateFrom, LocalDate dateTo) {
+        logger.info("Searching for trade matching with a specific date ranges: start date {}, maturity date {}", dateFrom, dateTo);
+
+        if (dateFrom == null || dateTo == null) {
+            throw new RuntimeException("Both start date and maturity must be provided");
+        }
+
+        if (dateFrom.isAfter(dateTo)) {
+            throw new RuntimeException("Start date cannot be before the maturity date");
+        }
+
+        List<Trade> tradesFound = tradeRepository.findTradeByDateRange(dateFrom, dateTo);
+        if (tradesFound.isEmpty()) {
+            logger.info("No trades found for date range: start date {}, maturity date{} ", dateFrom, dateTo);
+            return List.of();
+        }
+
+        logger.info("Found, the following trade matching with the date ranges provided: {}, {}", dateFrom, dateTo);
+        return tradesFound.stream().map(tradeMapper::toDto).toList();
+    }
+
+    // NEW SEARCH METHOD Consolidate all criteria: return trades matching with the criteria provided.
+    public List<TradeDTO> findTradeByAllCriteria (String counterparty, String book, String traderUser, String tradeStatus, LocalDate dateFrom, LocalDate dateTo ){
+        logger.info("Searching for trade matching with criteria: counterparty {}, book {}, trader user {}, trade status {}, start date {}, maturity date {}",
+                counterparty, book, traderUser, tradeStatus, dateFrom, dateTo);
+
+        List<Trade> tradesFound = tradeRepository.findTradeByAllCriteria(counterparty, book, traderUser, tradeStatus, dateFrom, dateTo);
+        if (tradesFound.isEmpty()) {
+            logger.info("No trades found for the criteria");
+            return List.of();
+        }
+
+        logger.info("Found the following trades matching the criteria");
+        return tradesFound.stream().map(tradeMapper::toDto).toList();
+    }
+
+
+
 }
