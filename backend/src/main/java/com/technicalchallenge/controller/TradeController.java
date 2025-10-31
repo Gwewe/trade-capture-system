@@ -4,6 +4,7 @@ import com.technicalchallenge.dto.TradeDTO;
 import com.technicalchallenge.mapper.TradeMapper;
 import com.technicalchallenge.model.Trade;
 import com.technicalchallenge.service.TradeService;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +20,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import jakarta.validation.Valid;
+
+import java.time.LocalDate;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -71,35 +74,186 @@ public class TradeController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
-//    String counterparty, String book, String traderUser, String tradeStatus
-    @GetMapping("/search") // Multi-criteria search
-    @Operation(summary = "Multi-criteria search for matching trades",
+//    Single-criteria search endpoint for Counterparty
+    @GetMapping("/search/counterparty")
+    @Operation(summary = "Search method to find specific trades by Counterparty",
             description = "Retrieves specific trades that match the specified search parameter")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Matching trades found",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = TradeDTO.class))),
-            @ApiResponse(responseCode = "204", description = "No matching trades found"),
+            @ApiResponse(responseCode = "404", description = "Trade not found"),
             @ApiResponse(responseCode = "400", description = "Invalid search format")
     })
-    public ResponseEntity <?> getTradeDTOBySearch (
-            @Parameter(required = false) String counterparty,
-            @Parameter(required = false) String book,
-            @Parameter( required = false) String traderUser,
-            @Parameter(required = false) String tradeStatus){
-        try{
-            List<TradeDTO> matchingTradeDTOs = tradeService.getTradeDTOBySearch(counterparty,book, traderUser,tradeStatus);
-            if (matchingTradeDTOs.isEmpty()) {
-                logger.info("No matching trades found for the following search option: counterparty={}, book={}, tradeUser={}, tradeStatus={}", counterparty, book, traderUser, tradeStatus);
-                return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    public ResponseEntity <?> findTradeByCounterparty (
+            @Parameter(required = true) String counterparty){
+        logger.info("Searching for the Counterparty: {}", counterparty);
+
+        try {
+        List<TradeDTO> results = tradeService.findTradeByCounterparty(counterparty);
+            if (results.isEmpty()) {
+                logger.info("No trades found for Counterparty: {}", counterparty);
+                return ResponseEntity.notFound().build();
             }
-            logger.info("Found {} matching trades", matchingTradeDTOs.size());
-            return ResponseEntity.ok(matchingTradeDTOs);
+            logger.info("Found {} matching trades for Counterparty.", results.size());
+            return ResponseEntity.ok(results);
         } catch (Exception e){
             logger.error("Error retrieving the matching trades: {}", e.getMessage(), e);
             return ResponseEntity.badRequest().body("Error retrieving the matching trades: " + e.getMessage());
         }
     }
+    //    Single-criteria search endpoint for Book
+    @GetMapping("/search/book")
+    @Operation(summary = "Search method to find specific trades by Book",
+            description = "Retrieves specific trades that match the specified search parameter")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Matching trades found",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = TradeDTO.class))),
+            @ApiResponse(responseCode = "404", description = "Trade not found"),
+            @ApiResponse(responseCode = "400", description = "Invalid search format")
+    })
+    public ResponseEntity <?> findTradeByBook (
+            @Parameter(required = true) String book){
+        logger.info("Searching for the Book: {}", book);
+
+        try {
+            List<TradeDTO> results = tradeService.findTradeByBook(book);
+            if (results.isEmpty()) {
+                logger.info("No trades found for Book: {}", book);
+                return ResponseEntity.notFound().build();
+            }
+            logger.info("Found {} matching trades for Book", results.size());
+            return ResponseEntity.ok(results);
+        } catch (Exception e){
+            logger.error("Error retrieving the matching trades: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest().body("Error retrieving the matching trades: " + e.getMessage());
+        }
+    }
+
+    //    Single-criteria search endpoint for Trader User
+    @GetMapping("/search/traderUser")
+    @Operation(summary = "Search method to find specific trades by TraderUser",
+            description = "Retrieves specific trades that match the specified search parameter")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Matching trades found",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = TradeDTO.class))),
+            @ApiResponse(responseCode = "404", description = "Trade not found"),
+            @ApiResponse(responseCode = "400", description = "Invalid search format")
+    })
+    public ResponseEntity <?> findTradeByTraderUser (
+            @Parameter(required = true) String traderUser){
+        logger.info("Searching for the Trader User: {}", traderUser);
+
+        try {
+            List<TradeDTO> results = tradeService.findTradeByTraderUser(traderUser);
+            if (results.isEmpty()) {
+                logger.info("No trades found for Trader User: {}", traderUser);
+                return ResponseEntity.notFound().build();
+            }
+            logger.info("Found {} matching trades for Trader User", results.size());
+            return ResponseEntity.ok(results);
+        } catch (Exception e){
+            logger.error("Error retrieving the matching trades: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest().body("Error retrieving the matching trades: " + e.getMessage());
+        }
+    }
+
+    //    Single-criteria search endpoint for Trade Status
+    @GetMapping("/search/traderUser")
+    @Operation(summary = "Search method to find specific trades by Trade Status",
+            description = "Retrieves specific trades that match the specified search parameter")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Matching trades found",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = TradeDTO.class))),
+            @ApiResponse(responseCode = "404", description = "Trade not found"),
+            @ApiResponse(responseCode = "400", description = "Invalid search format")
+    })
+    public ResponseEntity <?> findTradeByTradeStatus (
+            @Parameter(required = true) String tradeStatus){
+        logger.info("Searching for the Trade Status: {}", tradeStatus);
+
+        try {
+            List<TradeDTO> results = tradeService.findTradeByTradeStatus(tradeStatus);
+            if (results.isEmpty()) {
+                logger.info("No trades found for Trade Status: {}", tradeStatus);
+                return ResponseEntity.notFound().build();
+            }
+            logger.info("Found {} matching trades for Trade Status", results.size());
+            return ResponseEntity.ok(results);
+        } catch (Exception e){
+            logger.error("Error retrieving the matching trades: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest().body("Error retrieving the matching trades: " + e.getMessage());
+        }
+    }
+
+    //    Single-criteria search endpoint for Date Range
+    @GetMapping("/search/dateRange")
+    @Operation(summary = "Search method to find specific trades by date range",
+            description = "Retrieves specific trades that match the specified search parameter")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Matching trades found",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = TradeDTO.class))),
+            @ApiResponse(responseCode = "404", description = "Trade not found"),
+            @ApiResponse(responseCode = "400", description = "Invalid search format")
+    })
+    public ResponseEntity <?> findTradeByDateRange (
+            @Parameter(required = true) LocalDate dateFrom,
+            @Parameter(required = true) LocalDate dateTo){
+        logger.info("Searching for the Trade with a specific date ranges: start date {}, maturity date {}", dateFrom, dateTo);
+
+        try {
+            List<TradeDTO> results = tradeService.findTradeByDateRange(dateFrom, dateTo);
+            if (results.isEmpty()) {
+                logger.info("No trades found for with a specific date ranges: start date {}, maturity date {}", dateFrom, dateTo);
+                return ResponseEntity.notFound().build();
+            }
+            logger.info("Found {} matching trades for date ranges", results.size());
+            return ResponseEntity.ok(results);
+        } catch (Exception e){
+            logger.error("Error retrieving the matching trades: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest().body("Error retrieving the matching trades: " + e.getMessage());
+        }
+    }
+
+    //    Multiple-criteria search endpoint that consolidate all criteria
+    @GetMapping("/search")
+    @Operation(summary = "Search method with multiple criteria",
+            description = "Retrieves specific trades that match the specified search parameter")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Matching trades found",
+                    content = @Content(mediaType = "application/json",
+                            array = @ArraySchema (schema = @Schema(implementation = TradeDTO.class)))),
+            @ApiResponse(responseCode = "404", description = "Trade not found"),
+            @ApiResponse(responseCode = "400", description = "Invalid search format")
+    })
+    public ResponseEntity <?> findTradeByAllCriteria (
+            @RequestParam(required = false) String counterparty,
+            @RequestParam(required = false) String book,
+            @RequestParam(required = false) String traderUser,
+            @RequestParam(required = false) String tradeStatus,
+            @RequestParam(required = false) LocalDate dateFrom,
+            @RequestParam(required = false) LocalDate dateTo){
+        logger.info("Searching for the Trade with multiple criteria: counterparty={}, book={}, traderUser={}, tradeStatus={}, dateFrom={}, dateTo={}",
+                counterparty, book, traderUser, tradeStatus, dateFrom, dateTo);
+
+        try {
+            List<TradeDTO> results = tradeService.findTradeByAllCriteria(counterparty, book, traderUser, tradeStatus, dateFrom, dateTo);
+            if (results.isEmpty()) {
+                logger.info("No trades found for the criteria provided");
+                return ResponseEntity.notFound().build();
+            }
+            logger.info("Found {} matching trades.", results.size());
+            return ResponseEntity.ok(results);
+        } catch (Exception e){
+            logger.error("Error retrieving the matching trades: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest().body("Error retrieving the matching trades: " + e.getMessage());
+        }
+    }
+
 
     @PostMapping
     @Operation(summary = "Create new trade",
