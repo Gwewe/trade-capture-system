@@ -85,21 +85,24 @@ public class TradeController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Matching trades found",
                     content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = TradeDTO.class))),
+                            array = @ArraySchema (schema = @Schema(implementation = TradeDTO.class)))),
             @ApiResponse(responseCode = "404", description = "Trade not found"),
             @ApiResponse(responseCode = "400", description = "Invalid search format")
     })
     public ResponseEntity <?> findTradeByCounterparty (
-            @Parameter(required = true) String counterparty){
+            @RequestParam(required = true) String counterparty,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "15") int size){
         logger.info("Searching for the Counterparty: {}", counterparty);
+        Pageable pageable = (Pageable) PageRequest.of(page, size, Sort.by("counterparty").descending());
 
         try {
-        List<TradeDTO> results = tradeService.findTradeByCounterparty(counterparty);
+        Page<TradeDTO> results = tradeService.findTradeByCounterparty(counterparty, pageable);
             if (results.isEmpty()) {
                 logger.info("No trades found for Counterparty: {}", counterparty);
                 return ResponseEntity.notFound().build();
             }
-            logger.info("Found {} matching trades for Counterparty.", results.size());
+            logger.info("Found {} matching trades for Counterparty.", results.getTotalElements());
             return ResponseEntity.ok(results);
         } catch (Exception e){
             logger.error("Error retrieving the matching trades: {}", e.getMessage(), e);
@@ -113,21 +116,24 @@ public class TradeController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Matching trades found",
                     content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = TradeDTO.class))),
+                            array = @ArraySchema (schema = @Schema(implementation = TradeDTO.class)))),
             @ApiResponse(responseCode = "404", description = "Trade not found"),
             @ApiResponse(responseCode = "400", description = "Invalid search format")
     })
     public ResponseEntity <?> findTradeByBook (
-            @Parameter(required = true) String book){
+            @RequestParam(required = true) String book,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "15") int size){
         logger.info("Searching for the Book: {}", book);
+        Pageable pageable = (Pageable) PageRequest.of(page, size, Sort.by("book").descending());
 
         try {
-            List<TradeDTO> results = tradeService.findTradeByBook(book);
+            Page<TradeDTO> results = tradeService.findTradeByBook(book, pageable);
             if (results.isEmpty()) {
                 logger.info("No trades found for Book: {}", book);
                 return ResponseEntity.notFound().build();
             }
-            logger.info("Found {} matching trades for Book", results.size());
+            logger.info("Found {} matching trades for Book", results.getTotalElements());
             return ResponseEntity.ok(results);
         } catch (Exception e){
             logger.error("Error retrieving the matching trades: {}", e.getMessage(), e);
@@ -142,21 +148,24 @@ public class TradeController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Matching trades found",
                     content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = TradeDTO.class))),
+                            array = @ArraySchema (schema = @Schema(implementation = TradeDTO.class)))),
             @ApiResponse(responseCode = "404", description = "Trade not found"),
             @ApiResponse(responseCode = "400", description = "Invalid search format")
     })
     public ResponseEntity <?> findTradeByTraderUser (
-            @Parameter(required = true) String traderUser){
+            @RequestParam(required = true) String traderUser,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "15") int size){
         logger.info("Searching for the Trader User: {}", traderUser);
+        Pageable pageable = (Pageable) PageRequest.of(page, size, Sort.by("traderUser").descending());
 
         try {
-            List<TradeDTO> results = tradeService.findTradeByTraderUser(traderUser);
+            Page<TradeDTO> results = tradeService.findTradeByTraderUser(traderUser, pageable);
             if (results.isEmpty()) {
                 logger.info("No trades found for Trader User: {}", traderUser);
                 return ResponseEntity.notFound().build();
             }
-            logger.info("Found {} matching trades for Trader User", results.size());
+            logger.info("Found {} matching trades for Trader User", results.getTotalElements());
             return ResponseEntity.ok(results);
         } catch (Exception e){
             logger.error("Error retrieving the matching trades: {}", e.getMessage(), e);
@@ -171,21 +180,24 @@ public class TradeController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Matching trades found",
                     content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = TradeDTO.class))),
+                            array = @ArraySchema (schema = @Schema(implementation = TradeDTO.class)))),
             @ApiResponse(responseCode = "404", description = "Trade not found"),
             @ApiResponse(responseCode = "400", description = "Invalid search format")
     })
     public ResponseEntity <?> findTradeByTradeStatus (
-            @Parameter(required = true) String tradeStatus){
+            @RequestParam(required = true) String tradeStatus,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "15") int size){
         logger.info("Searching for the Trade Status: {}", tradeStatus);
+        Pageable pageable = (Pageable) PageRequest.of(page, size, Sort.by("tradeStatus").descending());
 
         try {
-            List<TradeDTO> results = tradeService.findTradeByTradeStatus(tradeStatus);
+            Page<TradeDTO> results = tradeService.findTradeByTradeStatus(tradeStatus, pageable);
             if (results.isEmpty()) {
                 logger.info("No trades found for Trade Status: {}", tradeStatus);
                 return ResponseEntity.notFound().build();
             }
-            logger.info("Found {} matching trades for Trade Status", results.size());
+            logger.info("Found {} matching trades for Trade Status", results.getTotalElements());
             return ResponseEntity.ok(results);
         } catch (Exception e){
             logger.error("Error retrieving the matching trades: {}", e.getMessage(), e);
@@ -200,22 +212,25 @@ public class TradeController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Matching trades found",
                     content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = TradeDTO.class))),
+                            array = @ArraySchema (schema = @Schema(implementation = TradeDTO.class)))),
             @ApiResponse(responseCode = "404", description = "Trade not found"),
             @ApiResponse(responseCode = "400", description = "Invalid search format")
     })
     public ResponseEntity <?> findTradeByDateRange (
-            @Parameter(required = true) LocalDate dateFrom,
-            @Parameter(required = true) LocalDate dateTo){
+            @RequestParam(required = true) LocalDate dateFrom,
+            @RequestParam(required = true) LocalDate dateTo,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "15") int size){
         logger.info("Searching for the Trade with a specific date ranges: start date {}, maturity date {}", dateFrom, dateTo);
+        Pageable pageable = (Pageable) PageRequest.of(page, size, Sort.by("tradeStartDate").descending());
 
         try {
-            List<TradeDTO> results = tradeService.findTradeByDateRange(dateFrom, dateTo);
+            Page<TradeDTO> results = tradeService.findTradeByDateRange(dateFrom, dateTo, pageable);
             if (results.isEmpty()) {
                 logger.info("No trades found for with a specific date ranges: start date {}, maturity date {}", dateFrom, dateTo);
                 return ResponseEntity.notFound().build();
             }
-            logger.info("Found {} matching trades for date ranges", results.size());
+            logger.info("Found {} matching trades for date ranges", results.getTotalElements());
             return ResponseEntity.ok(results);
         } catch (Exception e){
             logger.error("Error retrieving the matching trades: {}", e.getMessage(), e);

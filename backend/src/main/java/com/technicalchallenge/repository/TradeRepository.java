@@ -36,20 +36,20 @@ public interface TradeRepository extends JpaRepository<Trade, Long> {
 
 
     // NEW SEARCH METHOD to find specific trade containing a specific Counterparty
-    List<Trade> findTradeByCounterparty (String counterparty);
+    Page<Trade> findTradeByCounterparty (String counterparty, Pageable pageable);
 
     // NEW SEARCH METHOD to find specific trade containing a specific Book
-    List<Trade> findTradeByBook (String book);
+    Page<Trade> findTradeByBook (String book, Pageable pageable);
 
     // NEW SEARCH METHOD to find specific trade containing a specific TraderUser
-    List<Trade> findTradeByTraderUser (String traderUser);
+    Page<Trade> findTradeByTraderUser (String traderUser, Pageable pageable);
 
     // NEW SEARCH METHOD to find specific trade containing a specific TradeStatus
-    List<Trade> findTradeByTradeStatus (String tradeStatus);
+    Page<Trade> findTradeByTradeStatus (String tradeStatus, Pageable pageable);
 
     // NEW SEARCH METHOD to find specific trade matching exactly a specific date ranges
     @Query("SELECT t FROM Trade t WHERE t.tradeStartDate = :dateFrom AND t.tradeMaturityDate = :dateTo")
-    List<Trade> findTradeByDateRange (@Param("dateFrom") LocalDate dateFrom, @Param("dateTo") LocalDate dateTo);
+    Page<Trade> findTradeByDateRange (@Param("dateFrom") LocalDate dateFrom, @Param("dateTo") LocalDate dateTo, Pageable pageable);
 
     // NEW SEARCH METHOD to find specific trade containing a specific all the specific criteria
     @Query("SELECT t FROM Trade t WHERE (:counterparty IS NULL OR t.counterparty = :counterparty) AND (:book IS NULL OR t.book = :book) AND (:traderUser IS NULL OR t.traderUser = :traderUser) AND (:tradeStatus IS NULL OR t.tradeStatus = :tradeStatus) AND (:dateFrom IS NULL OR t.tradeStartDate = :dateFrom) AND (:dateTo IS NULL OR t.tradeMaturityDate = :dateTo)")

@@ -598,79 +598,79 @@ public class TradeService {
 
 
     // NEW SEARCH METHOD: return trades containing a specific Counterparty
-    public List<TradeDTO> findTradeByCounterparty (String counterparty) {
+    public Page<TradeDTO> findTradeByCounterparty (String counterparty, Pageable pageable) {
         logger.info("Searching for trade matching with the Counterparty name provided: {}", counterparty);
 
         if (counterparty == null || counterparty.isBlank()) {
             throw new RuntimeException("Counterparty must be provided");
         }
 
-        List<Trade> tradesFound = tradeRepository.findTradeByCounterparty(counterparty);
+        Page<Trade> tradesFound = tradeRepository.findTradeByCounterparty(counterparty, pageable);
         if (tradesFound.isEmpty()){
             logger.info("Counterparty not found: {} ", counterparty);
-            return List.of();
+            return Page.empty();
         }
 
-        logger.info("Counterparty provided, returning trades that match with the specific Counterparty. Total: {}", tradesFound.size());
-        return tradesFound.stream().map(tradeMapper::toDto).toList();
+        logger.info("Counterparty provided, returning trades that match with the specific Counterparty. Total: {}", tradesFound.getTotalElements());
+        return tradesFound.map(tradeMapper::toDto);
     }
 
     // NEW SEARCH METHOD: return trades containing a specific Book
-    public List<TradeDTO> findTradeByBook (String book) {
+    public Page<TradeDTO> findTradeByBook (String book, Pageable pageable) {
         logger.info("Searching for trade matching with the Book name provided: {}", book);
 
         if (book == null || book.isBlank()) {
             throw new RuntimeException("Book must be provided");
         }
 
-        List<Trade> tradesFound = tradeRepository.findTradeByBook(book);
+        Page<Trade> tradesFound = tradeRepository.findTradeByBook(book, pageable);
          if (tradesFound.isEmpty()) {
              logger.info("Book not found: {} ", book);
-             return List.of();
+             return Page.empty();
         }
 
-        logger.info("Book name was provided, returning trades that match with the specific Book. Total: {}", tradesFound.size());
-        return tradesFound.stream().map(tradeMapper::toDto).toList();
+        logger.info("Book name was provided, returning trades that match with the specific Book. Total: {}", tradesFound.getTotalElements());
+        return tradesFound.map(tradeMapper::toDto);
     }
 
     // NEW SEARCH METHOD: return trades containing a specific TraderUser
-    public List<TradeDTO> findTradeByTraderUser (String traderUser) {
+    public Page<TradeDTO> findTradeByTraderUser (String traderUser, Pageable pageable) {
         logger.info("Searching for trade matching with the Trader User provided: {}", traderUser);
 
         if (traderUser == null || traderUser.isBlank()) {
             throw new RuntimeException("Trader User must be provided");
         }
 
-        List<Trade> tradesFound = tradeRepository.findTradeByTraderUser(traderUser);
+        Page<Trade> tradesFound = tradeRepository.findTradeByTraderUser(traderUser, pageable);
         if (tradesFound.isEmpty()) {
             logger.info("Trader User not found: {} ", traderUser);
-            return List.of();
+            return Page.empty();
         }
 
-        logger.info("Trader User was provided, returning trades that match with the specific Trader name. Total: {}", tradesFound.size());
-        return tradesFound.stream().map(tradeMapper::toDto).toList();
+        logger.info("Trader User was provided, returning trades that match with the specific Trader name. Total: {}", tradesFound.getTotalElements());
+        return tradesFound.map(tradeMapper::toDto);
     }
 
     // NEW SEARCH METHOD: return trades containing a specific TradeStatus
-    public List<TradeDTO> findTradeByTradeStatus (String tradeStatus) {
+    public Page<TradeDTO> findTradeByTradeStatus (String tradeStatus, Pageable pageable) {
         logger.info("Searching for trade matching with the Trade Status: {}", tradeStatus);
 
         if (tradeStatus == null || tradeStatus.isBlank()) {
             throw new RuntimeException("Trade Status must be provided");
         }
 
-        List<Trade> tradesFound = tradeRepository.findTradeByTradeStatus(tradeStatus);
+        Page<Trade> tradesFound = tradeRepository.findTradeByTradeStatus(tradeStatus, pageable);
         if (tradesFound.isEmpty()) {
             logger.info("Trader Status not found: {} ", tradeStatus);
-            return List.of();
+            return Page.empty();
         }
 
         logger.info("Found, the following trade matching with the Trade Status provided: {}", tradeStatus);
-        return tradesFound.stream().map(tradeMapper::toDto).toList();
+        return tradesFound.map(tradeMapper::toDto);
     }
 
     // NEW SEARCH METHOD: return trades matching a specific date ranges.
-    public List<TradeDTO> findTradeByDateRange (LocalDate dateFrom, LocalDate dateTo) {
+    public Page<TradeDTO> findTradeByDateRange (LocalDate dateFrom, LocalDate dateTo, Pageable pageable) {
         logger.info("Searching for trade matching with a specific date ranges: start date {}, maturity date {}", dateFrom, dateTo);
 
         if (dateFrom == null || dateTo == null) {
@@ -681,14 +681,14 @@ public class TradeService {
             throw new RuntimeException("Start date cannot be before the maturity date");
         }
 
-        List<Trade> tradesFound = tradeRepository.findTradeByDateRange(dateFrom, dateTo);
+        Page<Trade> tradesFound = tradeRepository.findTradeByDateRange(dateFrom, dateTo, pageable);
         if (tradesFound.isEmpty()) {
             logger.info("No trades found for date range: start date {}, maturity date{} ", dateFrom, dateTo);
-            return List.of();
+            return Page.empty();
         }
 
         logger.info("Found, the following trade matching with the date ranges provided: {}, {}", dateFrom, dateTo);
-        return tradesFound.stream().map(tradeMapper::toDto).toList();
+        return tradesFound.map(tradeMapper::toDto);
     }
 
     // NEW SEARCH METHOD Consolidate all criteria: return trades matching with the criteria provided. Included Pageable option
