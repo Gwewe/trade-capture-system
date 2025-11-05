@@ -706,6 +706,10 @@ public class TradeService {
         return tradesFound.map(tradeMapper::toDto);
     }
 
+//    public Page<TradeDTO> findTradesByRsql(String rsqlQuery, Pageable pageable) {
+//
+//    }
 
 
-}
+
+    }
