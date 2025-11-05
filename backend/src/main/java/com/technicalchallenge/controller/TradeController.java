@@ -275,7 +275,33 @@ public class TradeController {
             return ResponseEntity.badRequest().body("Error retrieving the matching trades: " + e.getMessage());
         }
     }
+    //    Search endpoint for the RSQL
+    @GetMapping("/rsql")
+    @Operation(summary = "Search method with RSQL",
+            description = "Retrieves specific trades that match the specified RSQL query")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Matching trades found",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = TradeDTO.class))),
+            @ApiResponse(responseCode = "404", description = "Trade not found"),
+            @ApiResponse(responseCode = "400", description = "Invalid search format")
+    })
+    public ResponseEntity <?> findTradesByRsql (@RequestParam("query") String rsqlQuery) {
+        logger.info("Searching for the Trade with query: query={} ", rsqlQuery);
 
+        try {
+            List<TradeDTO> results = tradeService.findTradesByRsql(rsqlQuery);
+            if (results.isEmpty()) {
+                logger.info("No trades found for query={} ", rsqlQuery);
+                return ResponseEntity.notFound().build();
+            }
+            logger.info("Found {} matching trades for query={} ", results.size(), rsqlQuery);
+            return ResponseEntity.ok(results);
+        } catch (Exception e){
+            logger.error("Error retrieving the matching trades: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest().body("Error retrieving the matching trades: " + e.getMessage());
+        }
+    }
 
     @PostMapping
     @Operation(summary = "Create new trade",
