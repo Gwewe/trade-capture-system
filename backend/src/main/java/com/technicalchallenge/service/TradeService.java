@@ -6,9 +6,14 @@ import com.technicalchallenge.dto.TradeLegDTO;
 import com.technicalchallenge.mapper.TradeMapper;
 import com.technicalchallenge.model.*;
 import com.technicalchallenge.repository.*;
+import com.technicalchallenge.rsql.CustomRsqlVisitor;
+import com.technicalchallenge.rsql.GenericRsqlSpecBuilder;
+import cz.jirutka.rsql.parser.RSQLParser;
+import cz.jirutka.rsql.parser.ast.Node;
 import org.hibernate.usertype.UserType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
@@ -706,10 +711,34 @@ public class TradeService {
         return tradesFound.map(tradeMapper::toDto);
     }
 
-//    public Page<TradeDTO> findTradesByRsql(String rsqlQuery, Pageable pageable) {
-//
-//    }
+    // NEW RSQL SEARCH METHOD: return trades matching from the rsqlQuery
+    public List<TradeDTO> findTradesByRsql(String rsqlQuery) {
+        logger.info("Searching for trade matching with the specific RSQL query: {}", rsqlQuery);
 
+        if (rsqlQuery == null || rsqlQuery.isEmpty()) {
+            throw new RuntimeException("RSQL Query must be provided");
+        }
 
+        // Take the rsqlQuery string and break it down into a structured format
+        // Example: /api/trades/rsql?query=(counterparty.name==ABC);tradeStatus.tradeStatus==NEW
+        // Become a AndNode with two ComparisonNode
+        Node rootNode = new RSQLParser().parse(rsqlQuery);
 
+        // Turn that structured format into a Specification (filter) that the database understand.
+        // Each ComparisonNode becomes checks
+        // and the AndNode joins them together into a combined filter.
+        Specification<Trade> specification = rootNode.accept(new CustomRsqlVisitor<>());
+
+        // Use the repository to apply the filter and retrieve matching trades from the database
+        List<Trade> tradesFound = tradeRepository.findAll(specification);
+
+        if (tradesFound.isEmpty()){
+            logger.info("No trades found for the specific RSQL query");
+            return List.of();
+        }
+
+        logger.info("Found the following trades matching the specific RSQL query");
+        return tradesFound.stream().map(tradeMapper::toDto).toList();
     }
+
+}
