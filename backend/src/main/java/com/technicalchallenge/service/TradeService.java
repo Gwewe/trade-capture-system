@@ -6,13 +6,20 @@ import com.technicalchallenge.dto.TradeLegDTO;
 import com.technicalchallenge.mapper.TradeMapper;
 import com.technicalchallenge.model.*;
 import com.technicalchallenge.repository.*;
+import com.technicalchallenge.rsql.CustomRsqlVisitor;
+import com.technicalchallenge.rsql.GenericRsqlSpecBuilder;
+import cz.jirutka.rsql.parser.RSQLParser;
+import cz.jirutka.rsql.parser.ast.Node;
 import org.hibernate.usertype.UserType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.awt.print.Pageable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -596,79 +603,79 @@ public class TradeService {
 
 
     // NEW SEARCH METHOD: return trades containing a specific Counterparty
-    public List<TradeDTO> findTradeByCounterparty (String counterparty) {
+    public Page<TradeDTO> findTradeByCounterparty (String counterparty, Pageable pageable) {
         logger.info("Searching for trade matching with the Counterparty name provided: {}", counterparty);
 
         if (counterparty == null || counterparty.isBlank()) {
             throw new RuntimeException("Counterparty must be provided");
         }
 
-        List<Trade> tradesFound = tradeRepository.findTradeByCounterparty(counterparty);
+        Page<Trade> tradesFound = tradeRepository.findTradeByCounterparty(counterparty, pageable);
         if (tradesFound.isEmpty()){
             logger.info("Counterparty not found: {} ", counterparty);
-            return List.of();
+            return Page.empty();
         }
 
-        logger.info("Counterparty provided, returning trades that match with the specific Counterparty. Total: {}", tradesFound.size());
-        return tradesFound.stream().map(tradeMapper::toDto).toList();
+        logger.info("Counterparty provided, returning trades that match with the specific Counterparty. Total: {}", tradesFound.getTotalElements());
+        return tradesFound.map(tradeMapper::toDto);
     }
 
     // NEW SEARCH METHOD: return trades containing a specific Book
-    public List<TradeDTO> findTradeByBook (String book) {
+    public Page<TradeDTO> findTradeByBook (String book, Pageable pageable) {
         logger.info("Searching for trade matching with the Book name provided: {}", book);
 
         if (book == null || book.isBlank()) {
             throw new RuntimeException("Book must be provided");
         }
 
-        List<Trade> tradesFound = tradeRepository.findTradeByBook(book);
+        Page<Trade> tradesFound = tradeRepository.findTradeByBook(book, pageable);
          if (tradesFound.isEmpty()) {
              logger.info("Book not found: {} ", book);
-             return List.of();
+             return Page.empty();
         }
 
-        logger.info("Book name was provided, returning trades that match with the specific Book. Total: {}", tradesFound.size());
-        return tradesFound.stream().map(tradeMapper::toDto).toList();
+        logger.info("Book name was provided, returning trades that match with the specific Book. Total: {}", tradesFound.getTotalElements());
+        return tradesFound.map(tradeMapper::toDto);
     }
 
     // NEW SEARCH METHOD: return trades containing a specific TraderUser
-    public List<TradeDTO> findTradeByTraderUser (String traderUser) {
+    public Page<TradeDTO> findTradeByTraderUser (String traderUser, Pageable pageable) {
         logger.info("Searching for trade matching with the Trader User provided: {}", traderUser);
 
         if (traderUser == null || traderUser.isBlank()) {
             throw new RuntimeException("Trader User must be provided");
         }
 
-        List<Trade> tradesFound = tradeRepository.findTradeByTraderUser(traderUser);
+        Page<Trade> tradesFound = tradeRepository.findTradeByTraderUser(traderUser, pageable);
         if (tradesFound.isEmpty()) {
             logger.info("Trader User not found: {} ", traderUser);
-            return List.of();
+            return Page.empty();
         }
 
-        logger.info("Trader User was provided, returning trades that match with the specific Trader name. Total: {}", tradesFound.size());
-        return tradesFound.stream().map(tradeMapper::toDto).toList();
+        logger.info("Trader User was provided, returning trades that match with the specific Trader name. Total: {}", tradesFound.getTotalElements());
+        return tradesFound.map(tradeMapper::toDto);
     }
 
     // NEW SEARCH METHOD: return trades containing a specific TradeStatus
-    public List<TradeDTO> findTradeByTradeStatus (String tradeStatus) {
+    public Page<TradeDTO> findTradeByTradeStatus (String tradeStatus, Pageable pageable) {
         logger.info("Searching for trade matching with the Trade Status: {}", tradeStatus);
 
         if (tradeStatus == null || tradeStatus.isBlank()) {
             throw new RuntimeException("Trade Status must be provided");
         }
 
-        List<Trade> tradesFound = tradeRepository.findTradeByTradeStatus(tradeStatus);
+        Page<Trade> tradesFound = tradeRepository.findTradeByTradeStatus(tradeStatus, pageable);
         if (tradesFound.isEmpty()) {
             logger.info("Trader Status not found: {} ", tradeStatus);
-            return List.of();
+            return Page.empty();
         }
 
         logger.info("Found, the following trade matching with the Trade Status provided: {}", tradeStatus);
-        return tradesFound.stream().map(tradeMapper::toDto).toList();
+        return tradesFound.map(tradeMapper::toDto);
     }
 
     // NEW SEARCH METHOD: return trades matching a specific date ranges.
-    public List<TradeDTO> findTradeByDateRange (LocalDate dateFrom, LocalDate dateTo) {
+    public Page<TradeDTO> findTradeByDateRange (LocalDate dateFrom, LocalDate dateTo, Pageable pageable) {
         logger.info("Searching for trade matching with a specific date ranges: start date {}, maturity date {}", dateFrom, dateTo);
 
         if (dateFrom == null || dateTo == null) {
@@ -679,31 +686,59 @@ public class TradeService {
             throw new RuntimeException("Start date cannot be before the maturity date");
         }
 
-        List<Trade> tradesFound = tradeRepository.findTradeByDateRange(dateFrom, dateTo);
+        Page<Trade> tradesFound = tradeRepository.findTradeByDateRange(dateFrom, dateTo, pageable);
         if (tradesFound.isEmpty()) {
             logger.info("No trades found for date range: start date {}, maturity date{} ", dateFrom, dateTo);
-            return List.of();
+            return Page.empty();
         }
 
         logger.info("Found, the following trade matching with the date ranges provided: {}, {}", dateFrom, dateTo);
-        return tradesFound.stream().map(tradeMapper::toDto).toList();
+        return tradesFound.map(tradeMapper::toDto);
     }
 
-    // NEW SEARCH METHOD Consolidate all criteria: return trades matching with the criteria provided.
-    public List<TradeDTO> findTradeByAllCriteria (String counterparty, String book, String traderUser, String tradeStatus, LocalDate dateFrom, LocalDate dateTo ){
+    // NEW SEARCH METHOD Consolidate all criteria: return trades matching with the criteria provided. Included Pageable option
+    public Page<TradeDTO> findTradeByAllCriteria (String counterparty, String book, String traderUser, String tradeStatus, LocalDate dateFrom, LocalDate dateTo, Pageable pageable){
         logger.info("Searching for trade matching with criteria: counterparty {}, book {}, trader user {}, trade status {}, start date {}, maturity date {}",
                 counterparty, book, traderUser, tradeStatus, dateFrom, dateTo);
 
-        List<Trade> tradesFound = tradeRepository.findTradeByAllCriteria(counterparty, book, traderUser, tradeStatus, dateFrom, dateTo);
+        Page<Trade> tradesFound = tradeRepository.findTradeByAllCriteria(counterparty, book, traderUser, tradeStatus, dateFrom, dateTo, pageable);
         if (tradesFound.isEmpty()) {
             logger.info("No trades found for the criteria");
-            return List.of();
+            return Page.empty();
         }
 
         logger.info("Found the following trades matching the criteria");
-        return tradesFound.stream().map(tradeMapper::toDto).toList();
+        return tradesFound.map(tradeMapper::toDto);
     }
 
+    // NEW RSQL SEARCH METHOD: return trades matching from the rsqlQuery
+    public List<TradeDTO> findTradesByRsql(String rsqlQuery) {
+        logger.info("Searching for trade matching with the specific RSQL query: {}", rsqlQuery);
 
+        if (rsqlQuery == null || rsqlQuery.isEmpty()) {
+            throw new RuntimeException("RSQL Query must be provided");
+        }
+
+        // Take the rsqlQuery string and break it down into a structured format
+        // Example: /api/trades/rsql?query=(counterparty.name==ABC);tradeStatus.tradeStatus==NEW
+        // Become a AndNode with two ComparisonNode
+        Node rootNode = new RSQLParser().parse(rsqlQuery);
+
+        // Turn that structured format into a Specification (filter) that the database understand.
+        // Each ComparisonNode becomes checks
+        // and the AndNode joins them together into a combined filter.
+        Specification<Trade> specification = rootNode.accept(new CustomRsqlVisitor<>());
+
+        // Use the repository to apply the filter and retrieve matching trades from the database
+        List<Trade> tradesFound = tradeRepository.findAll(specification);
+
+        if (tradesFound.isEmpty()){
+            logger.info("No trades found for the specific RSQL query");
+            return List.of();
+        }
+
+        logger.info("Found the following trades matching the specific RSQL query");
+        return tradesFound.stream().map(tradeMapper::toDto).toList();
+    }
 
 }
