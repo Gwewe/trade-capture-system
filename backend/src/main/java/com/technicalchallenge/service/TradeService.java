@@ -1,16 +1,14 @@
 package com.technicalchallenge.service;
 
 import com.technicalchallenge.dto.TradeDTO;
-//import com.technicalchallenge.;
 import com.technicalchallenge.dto.TradeLegDTO;
 import com.technicalchallenge.mapper.TradeMapper;
 import com.technicalchallenge.model.*;
 import com.technicalchallenge.repository.*;
 import com.technicalchallenge.rsql.CustomRsqlVisitor;
-import com.technicalchallenge.rsql.GenericRsqlSpecBuilder;
 import cz.jirutka.rsql.parser.RSQLParser;
 import cz.jirutka.rsql.parser.ast.Node;
-import org.hibernate.usertype.UserType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
@@ -26,6 +24,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import com.technicalchallenge.validation.ValidationResult;
 
 @Service
 @Transactional
@@ -68,6 +68,9 @@ public class TradeService {
     private AdditionalInfoService additionalInfoService;
     @Autowired
     private TradeMapper tradeMapper;
+    @Autowired
+    private TradeValidationService tradeValidationService;
+
 
     public List<Trade> getAllTrades() {
         logger.info("Retrieving all trades");
@@ -91,8 +94,17 @@ public class TradeService {
             logger.info("Generated trade ID: {}", generatedTradeId);
         }
 
+        if (!tradeValidationService.validateUserPrivileges(null, "CREATE", tradeDTO)) {
+            throw new RuntimeException("User not allowed to CREATE trades");
+        }
         // Validate business rules
         validateTradeCreation(tradeDTO);
+
+        // Validate business rules
+        ValidationResult validationResult = tradeValidationService.validateTradeBusinessRules(tradeDTO);
+        if (!validationResult.isValid()) {
+            throw new RuntimeException("Trade validation failed: " + validationResult.getAllErrors());
+        }
 
         // Create trade entity
         Trade trade = mapDTOToEntity(tradeDTO);
@@ -295,6 +307,12 @@ public class TradeService {
 
         // Populate reference data
         populateReferenceDataByName(amendedTrade, tradeDTO);
+
+        // Validate business rules
+        ValidationResult validationResult = tradeValidationService.validateTradeBusinessRules(tradeDTO);
+        if (!validationResult.isValid()) {
+            throw new RuntimeException("Trade validation failed: " + validationResult.getAllErrors());
+        }
 
         // Set status to AMENDED
         TradeStatus amendedStatus = tradeStatusRepository.findByTradeStatus("AMENDED")

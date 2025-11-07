@@ -174,7 +174,7 @@ public class TradeController {
     }
 
     //    Single-criteria search endpoint for Trade Status
-    @GetMapping("/search/traderUser")
+    @GetMapping("/search/traderStatus")
     @Operation(summary = "Search method to find specific trades by Trade Status",
             description = "Retrieves specific trades that match the specified search parameter")
     @ApiResponses(value = {

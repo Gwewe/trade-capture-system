@@ -2,6 +2,7 @@ package com.technicalchallenge.mapper;
 
 import com.technicalchallenge.dto.UserDTO;
 import com.technicalchallenge.model.ApplicationUser;
+import com.technicalchallenge.model.Role;
 import com.technicalchallenge.model.UserProfile;
 import com.technicalchallenge.repository.UserProfileRepository;
 import org.modelmapper.ModelMapper;
@@ -22,7 +23,7 @@ public class ApplicationUserMapper {
     public UserDTO toDto(ApplicationUser entity) {
         UserDTO dto = modelMapper.map(entity, UserDTO.class);
         if (entity.getUserProfile() != null) {
-            dto.setUserProfile(entity.getUserProfile().getUserType());
+            dto.setUserProfile(entity.getUserProfile().getUserType().name());
         }
         return dto;
     }
@@ -30,8 +31,9 @@ public class ApplicationUserMapper {
     public ApplicationUser toEntity(UserDTO dto) {
         ApplicationUser entity = modelMapper.map(dto, ApplicationUser.class);
         if (dto.getUserProfile() != null) {
-            Optional<UserProfile> userProfileOpt = userProfileRepository.findByUserType(dto.getUserProfile());
-            userProfileOpt.ifPresent(entity::setUserProfile);
+            Role role = Role.valueOf(dto.getUserProfile());
+            userProfileRepository.findByUserType(role.name())
+                    .ifPresent(entity::setUserProfile);
         }
         return entity;
     }
