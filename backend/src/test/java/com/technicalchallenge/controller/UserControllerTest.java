@@ -5,6 +5,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.technicalchallenge.dto.UserDTO;
 import com.technicalchallenge.mapper.ApplicationUserMapper;
 import com.technicalchallenge.model.ApplicationUser;
+import com.technicalchallenge.model.Role;
 import com.technicalchallenge.model.UserProfile;
 import com.technicalchallenge.service.ApplicationUserService;
 import com.technicalchallenge.service.UserProfileService;
@@ -62,7 +63,7 @@ public class UserControllerTest {
         //Setup for UserProfile entity
         userProfile = new UserProfile();
         userProfile.setId(2L);
-        userProfile.setUserType("TRADER");
+        userProfile.setUserType(Role.TRADER);
         applicationUser.setUserProfile(userProfile);
 
         //Setup for UserDTO

@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -46,6 +47,9 @@ class TradeServiceTest {
 
     @Mock
     private ScheduleRepository scheduleRepository;
+
+    @Mock
+    private ApplicationUserRepository applicationUserRepository;
 
 
     @Mock
@@ -75,10 +79,18 @@ class TradeServiceTest {
 
         // fixed clock for deterministic validation
         Clock fixedClock = Clock.fixed(LocalDate.of(2025, 1, 15).atStartOfDay(ZoneId.systemDefault()).toInstant(), ZoneId.systemDefault());
-        tradeValidationService = spy(new TradeValidationService(fixedClock));
-        // inject the spy into the tradeService under test
+        tradeValidationService = new TradeValidationService(fixedClock);
         ReflectionTestUtils.setField(tradeService, "tradeValidationService", tradeValidationService);
+        ReflectionTestUtils.setField(tradeValidationService, "applicationUserRepository", applicationUserRepository);
 
+
+        ApplicationUser user = new ApplicationUser();
+        user.setId(2L);
+        UserProfile profile = new UserProfile();
+        profile.setUserType(Role.TRADER);
+        user.setUserProfile(profile);
+
+        lenient().when(applicationUserRepository.findById(2L)).thenReturn(Optional.of(user));
     }
 
     void tradeDTOSetUp() {
@@ -94,6 +106,7 @@ class TradeServiceTest {
         tradeDTO.setBookId(1000L);
         tradeDTO.setCounterpartyName("BigBankTest");
         tradeDTO.setTradeStatus("NEW");
+        tradeDTO.setTraderUserId(2L);
 
         TradeLegDTO leg1 = new TradeLegDTO();
         leg1.setNotional(BigDecimal.valueOf(1000000));
@@ -134,6 +147,8 @@ class TradeServiceTest {
     @Test
     void testCreateTrade_Success() {
         // Given
+        tradeDTO.setTraderUserId(2L);
+
         TradeLeg newTradeLeg = new TradeLeg();
         newTradeLeg.setLegId(1L);
         newTradeLeg.setTrade(trade);
