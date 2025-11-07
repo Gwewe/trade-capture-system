@@ -94,6 +94,9 @@ public class TradeService {
             logger.info("Generated trade ID: {}", generatedTradeId);
         }
 
+        if (!tradeValidationService.validateUserPrivileges(null, "CREATE", tradeDTO)) {
+            throw new RuntimeException("User not allowed to CREATE trades");
+        }
         // Validate business rules
         validateTradeCreation(tradeDTO);
 
