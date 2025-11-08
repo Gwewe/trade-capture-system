@@ -240,4 +240,33 @@ public class TradeControllerTest {
 
         verify(tradeService, never()).createTrade(any(TradeDTO.class));
     }
+
+    @Test
+    void testFindTradeByAllCriteria_success() throws Exception {
+        TradeDTO trade = new TradeDTO();
+        trade.setTradeId(1001L);
+        trade.setCounterpartyName("ABC Bank");
+        trade.setBookName("BOOK1");
+        trade.setTraderUserName("John");
+        trade.setTradeStatus("ACTIVE");
+
+        when(tradeService.findTradeByAllCriteria(
+                "ABC Bank", "BOOK1", "John", "ACTIVE",
+                LocalDate.of(2023, 1, 1), LocalDate.of(2023, 12, 31),
+                org.mockito.ArgumentMatchers.any()
+        )).thenReturn(new org.springframework.data.domain.PageImpl<>(List.of(trade)));
+
+        mockMvc.perform(get("/search/filter")
+                        .param("counterparty", "ABC Bank")
+                        .param("book", "BOOK1")
+                        .param("traderUser", "John")
+                        .param("tradeStatus", "ACTIVE")
+                        .param("dateFrom", "2023-01-01")
+                        .param("dateTo", "2023-12-31")
+                        .param("page", "0")
+                        .param("size", "15"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].counterparty").value("ABC Bank"));
+    }
+
 }

@@ -239,7 +239,7 @@ public class TradeController {
     }
 
     //    Multiple-criteria search endpoint that consolidate all criteria
-    @GetMapping("/search")
+    @GetMapping("/search/filter")
     @Operation(summary = "Search method with multiple criteria",
             description = "Retrieves specific trades that match the specified search parameter")
     @ApiResponses(value = {
